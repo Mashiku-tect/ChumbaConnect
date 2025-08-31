@@ -1,20 +1,42 @@
 import React, { useRef, useState } from 'react';
-import { View, Image, StyleSheet, ScrollView, Dimensions, Animated, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Image, StyleSheet, ScrollView, Dimensions, Animated, TouchableOpacity, Linking, Alert, Platform } from 'react-native';
 import { Text, Button, Card, IconButton, Divider, Modal, Portal, TextInput } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 const { width } = Dimensions.get('window');
 
+// Sample room data for fallback
+const sampleRoom = {
+  id: '1',
+  title: 'Modern Apartment in City Center',
+  price: '$1,200',
+  location: '123 Main St, City Center',
+  description: 'A beautiful modern apartment with great amenities and convenient location. Perfect for professionals or students.',
+  images: [
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXBhcnRtZW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFwYXJ0bWVudHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGFwYXJ0bWVudHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60'
+  ],
+  amenities: ['Wi-Fi', 'Parking', 'Laundry', 'Air Conditioning', 'Furnished', 'Pet Friendly']
+};
+
 export default function RoomDetailsScreen({ route, navigation }) {
-  const { room } = route.params;
+  // Use room from route params or fallback to sample data
+  const room = route.params?.room || sampleRoom;
+  
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [receiptModalVisible, setReceiptModalVisible] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
   
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -54,6 +76,11 @@ export default function RoomDetailsScreen({ route, navigation }) {
     setPaymentModalVisible(true);
   };
 
+  // Generate a random transaction ID
+  const generateTransactionId = () => {
+    return 'TXN' + Math.floor(100000000 + Math.random() * 900000000);
+  };
+
   const processPayment = () => {
     if (!cardNumber || !expiryDate || !cvv) {
       Alert.alert('Missing Information', 'Please provide all payment details');
@@ -67,22 +94,99 @@ export default function RoomDetailsScreen({ route, navigation }) {
       setIsProcessingPayment(false);
       setPaymentModalVisible(false);
       
-      Alert.alert(
-        'Payment Successful!',
-        'Your payment has been processed successfully. The landlord will contact you soon.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Reset form
-              setCardNumber('');
-              setExpiryDate('');
-              setCvv('');
-            }
-          }
-        ]
-      );
+      // Generate transaction details
+      const newTransactionId = generateTransactionId();
+      const currentDate = new Date().toLocaleString();
+      
+      setTransactionId(newTransactionId);
+      setPaymentDate(currentDate);
+      
+      // Show receipt modal
+      setReceiptModalVisible(true);
     }, 2000);
+  };
+
+  // Generate and share PDF receipt
+  const generateAndShareReceipt = async () => {
+    try {
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              .header { text-align: center; margin-bottom: 20px; }
+              .logo { font-size: 24px; font-weight: bold; color: #4CAF50; margin-bottom: 10px; }
+              .receipt-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+              .section { margin-bottom: 15px; }
+              .label { font-weight: bold; }
+              .divider { border-top: 1px solid #ddd; margin: 15px 0; }
+              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #777; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="logo">RentEasy</div>
+              <div class="receipt-title">Payment Receipt</div>
+            </div>
+            
+            <div class="section">
+              <div><span class="label">Transaction ID:</span> ${transactionId}</div>
+              <div><span class="label">Date:</span> ${paymentDate}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="section">
+              <div><span class="label">Property:</span> ${room.title}</div>
+              <div><span class="label">Location:</span> ${room.location}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="section">
+              <div><span class="label">Amount Paid:</span> ${room.price}</div>
+              <div><span class="label">Payment Method:</span> Credit Card</div>
+              <div><span class="label">Card Ending:</span> **** ${cardNumber.slice(-4)}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="section">
+              <div><span class="label">Paid to:</span> ${landlord.name}</div>
+              <div><span class="label">Landlord Contact:</span> ${landlord.phone}</div>
+              <div><span class="label">Email:</span> ${landlord.email}</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="footer">
+              <div>Thank you for your payment!</div>
+              <div>This receipt is proof of your transaction.</div>
+              <div>For any queries, contact support@renteasy.com</div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Generate PDF
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      
+      // Share the PDF file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Save Payment Receipt',
+          UTI: 'com.adobe.pdf'
+        });
+      } else {
+        Alert.alert('Success', 'Receipt generated successfully!', [
+          { text: 'OK', onPress: () => setReceiptModalVisible(false) }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      Alert.alert('Error', 'Failed to generate receipt. Please try again.');
+    }
   };
 
   return (
@@ -202,13 +306,20 @@ export default function RoomDetailsScreen({ route, navigation }) {
               <Marker coordinate={region} />
             </MapView>
             <Button 
-              mode="outlined" 
-              style={styles.directionsButton}
-              icon="navigation"
-              onPress={() => console.log("Get directions")}
-            >
-              Get Directions
-            </Button>
+  mode="outlined" 
+  style={styles.directionsButton}
+  icon="navigation"
+  onPress={() => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${region.latitude},${region.longitude}&travelmode=driving`;
+    Linking.openURL(url).catch(err => {
+      console.error("Failed to open Google Maps:", err);
+      Alert.alert("Error", "Could not open Google Maps.");
+    });
+  }}
+>
+  Get Directions
+</Button>
+
           </View>
 
           <Divider style={styles.divider} />
@@ -350,10 +461,83 @@ export default function RoomDetailsScreen({ route, navigation }) {
           </Card>
         </Modal>
       </Portal>
+
+      {/* Receipt Modal */}
+      <Portal>
+        <Modal visible={receiptModalVisible} onDismiss={() => setReceiptModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+          <Card>
+            <Card.Title 
+              title="Payment Successful!" 
+              titleStyle={styles.successTitle}
+              right={(props) => (
+                <IconButton {...props} icon="close" onPress={() => setReceiptModalVisible(false)} />
+              )}
+            />
+            <Card.Content>
+              <View style={styles.receiptContainer}>
+                <View style={styles.receiptHeader}>
+                  <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
+                  <Text style={styles.successMessage}>Your payment was processed successfully</Text>
+                </View>
+                
+                <View style={styles.receiptDetails}>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Transaction ID:</Text>
+                    <Text style={styles.receiptValue}>{transactionId}</Text>
+                  </View>
+                  
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Date:</Text>
+                    <Text style={styles.receiptValue}>{paymentDate}</Text>
+                  </View>
+                  
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Amount:</Text>
+                    <Text style={styles.receiptValue}>{room.price}</Text>
+                  </View>
+                  
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Property:</Text>
+                    <Text style={styles.receiptValue}>{room.title}</Text>
+                  </View>
+                  
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Paid to:</Text>
+                    <Text style={styles.receiptValue}>{landlord.name}</Text>
+                  </View>
+                </View>
+                
+                <Text style={styles.receiptNote}>
+                  A receipt has been generated for your records. You can download it for future reference.
+                </Text>
+                
+                <Button
+                  mode="contained"
+                  onPress={generateAndShareReceipt}
+                  style={styles.downloadButton}
+                  contentStyle={styles.downloadButtonContent}
+                  icon="download"
+                >
+                  Download Receipt
+                </Button>
+                
+                <Button
+                  mode="outlined"
+                  onPress={() => setReceiptModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  Close
+                </Button>
+              </View>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
     </View>
   );
 }
 
+// ... (keep the same styles as before)
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
@@ -595,11 +779,17 @@ const styles = StyleSheet.create({
   // Modal styles
   modalContainer: {
     padding: 20,
+    marginHorizontal: 10,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#2c3e50',
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4CAF50',
   },
   modalSubtitle: {
     fontSize: 14,
@@ -625,5 +815,59 @@ const styles = StyleSheet.create({
   },
   submitButtonContent: {
     height: 50,
+  },
+  // Receipt styles
+  receiptContainer: {
+    alignItems: 'center',
+  },
+  receiptHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  successMessage: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  receiptDetails: {
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+  },
+  receiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  receiptLabel: {
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  receiptValue: {
+    color: '#333',
+  },
+  receiptNote: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  downloadButton: {
+    borderRadius: 10,
+    marginBottom: 10,
+    backgroundColor: '#2196F3',
+    width: '100%',
+  },
+  downloadButtonContent: {
+    height: 50,
+  },
+  closeButton: {
+    borderRadius: 10,
+    width: '100%',
   },
 });

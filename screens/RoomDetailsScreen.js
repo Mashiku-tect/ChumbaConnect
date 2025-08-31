@@ -202,13 +202,20 @@ export default function RoomDetailsScreen({ route, navigation }) {
               <Marker coordinate={region} />
             </MapView>
             <Button 
-              mode="outlined" 
-              style={styles.directionsButton}
-              icon="navigation"
-              onPress={() => console.log("Get directions")}
-            >
-              Get Directions
-            </Button>
+  mode="outlined" 
+  style={styles.directionsButton}
+  icon="navigation"
+  onPress={() => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${region.latitude},${region.longitude}&travelmode=driving`;
+    Linking.openURL(url).catch(err => {
+      console.error("Failed to open Google Maps:", err);
+      Alert.alert("Error", "Could not open Google Maps.");
+    });
+  }}
+>
+  Get Directions
+</Button>
+
           </View>
 
           <Divider style={styles.divider} />
