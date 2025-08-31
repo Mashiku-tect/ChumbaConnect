@@ -10,11 +10,11 @@ export default function RoomDetailsScreen({ route, navigation }) {
   const { room } = route.params;
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [rentalModalVisible, setRentalModalVisible] = useState(false);
-  const [moveInDate, setMoveInDate] = useState('');
-  const [duration, setDuration] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSendingRequest, setIsSendingRequest] = useState(false);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -49,35 +49,35 @@ export default function RoomDetailsScreen({ route, navigation }) {
     Linking.openURL(`tel:${landlord.phone}`);
   };
 
-  // Function to send rental request
-  const sendRentalRequest = () => {
-    setRentalModalVisible(true);
+  // Function to handle payment
+  const handlePayment = () => {
+    setPaymentModalVisible(true);
   };
 
-  const handleSubmitRequest = () => {
-    if (!moveInDate || !duration) {
-      Alert.alert('Missing Information', 'Please provide move-in date and duration');
+  const processPayment = () => {
+    if (!cardNumber || !expiryDate || !cvv) {
+      Alert.alert('Missing Information', 'Please provide all payment details');
       return;
     }
 
-    setIsSendingRequest(true);
+    setIsProcessingPayment(true);
     
-    // Simulate API call
+    // Simulate payment processing
     setTimeout(() => {
-      setIsSendingRequest(false);
-      setRentalModalVisible(false);
+      setIsProcessingPayment(false);
+      setPaymentModalVisible(false);
       
       Alert.alert(
-        'Request Sent!',
-        'Your rental request has been sent to the landlord. They will contact you soon.',
+        'Payment Successful!',
+        'Your payment has been processed successfully. The landlord will contact you soon.',
         [
           {
             text: 'OK',
             onPress: () => {
               // Reset form
-              setMoveInDate('');
-              setDuration('');
-              setMessage('');
+              setCardNumber('');
+              setExpiryDate('');
+              setCvv('');
             }
           }
         ]
@@ -274,74 +274,77 @@ export default function RoomDetailsScreen({ route, navigation }) {
           </Button>
           <Button
             mode="contained"
-            onPress={sendRentalRequest}
-            style={[styles.contactButton, styles.requestButton]}
+            onPress={handlePayment}
+            style={[styles.contactButton, styles.paymentButton]}
             contentStyle={styles.buttonContent}
-            icon="file-document-edit"
+            icon="credit-card"
           >
-            Request
+            Pay Now
           </Button>
         </View>
       </View>
 
-      {/* Rental Request Modal */}
+      {/* Payment Modal */}
       <Portal>
-        <Modal visible={rentalModalVisible} onDismiss={() => setRentalModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+        <Modal visible={paymentModalVisible} onDismiss={() => setPaymentModalVisible(false)} contentContainerStyle={styles.modalContainer}>
           <Card>
             <Card.Title 
-              title="Send Rental Request" 
+              title="Make Payment" 
               titleStyle={styles.modalTitle}
               right={(props) => (
-                <IconButton {...props} icon="close" onPress={() => setRentalModalVisible(false)} />
+                <IconButton {...props} icon="close" onPress={() => setPaymentModalVisible(false)} />
               )}
             />
             <Card.Content>
               <Text style={styles.modalSubtitle}>
-                Send a formal rental request to {landlord.name}
+                Pay {room.price} to {landlord.name} for this rental
               </Text>
               
               <TextInput
-                label="Move-in Date *"
-                value={moveInDate}
-                onChangeText={setMoveInDate}
+                label="Card Number *"
+                value={cardNumber}
+                onChangeText={setCardNumber}
                 style={styles.modalInput}
                 mode="outlined"
-                placeholder="e.g., 2023-12-01"
-                left={<TextInput.Icon icon="calendar" />}
+                placeholder="1234 5678 9012 3456"
+                keyboardType="numeric"
+                left={<TextInput.Icon icon="credit-card" />}
               />
               
-              <TextInput
-                label="Duration *"
-                value={duration}
-                onChangeText={setDuration}
-                style={styles.modalInput}
-                mode="outlined"
-                placeholder="e.g., 6 months"
-                left={<TextInput.Icon icon="clock" />}
-              />
-              
-              <TextInput
-                label="Message to Landlord"
-                value={message}
-                onChangeText={setMessage}
-                style={[styles.modalInput, styles.messageInput]}
-                mode="outlined"
-                multiline
-                numberOfLines={4}
-                placeholder="Tell the landlord about yourself and why you're interested in this property..."
-                left={<TextInput.Icon icon="message" />}
-              />
+              <View style={styles.paymentRow}>
+                <TextInput
+                  label="Expiry Date *"
+                  value={expiryDate}
+                  onChangeText={setExpiryDate}
+                  style={[styles.modalInput, styles.halfInput]}
+                  mode="outlined"
+                  placeholder="MM/YY"
+                  keyboardType="numeric"
+                  left={<TextInput.Icon icon="calendar" />}
+                />
+                <TextInput
+                  label="CVV *"
+                  value={cvv}
+                  onChangeText={setCvv}
+                  style={[styles.modalInput, styles.halfInput]}
+                  mode="outlined"
+                  placeholder="123"
+                  keyboardType="numeric"
+                  secureTextEntry
+                  left={<TextInput.Icon icon="lock" />}
+                />
+              </View>
               
               <Button
                 mode="contained"
-                onPress={handleSubmitRequest}
+                onPress={processPayment}
                 style={styles.submitButton}
-                loading={isSendingRequest}
-                disabled={isSendingRequest}
+                loading={isProcessingPayment}
+                disabled={isProcessingPayment}
                 contentStyle={styles.submitButtonContent}
-                icon="send"
+                icon="check"
               >
-                {isSendingRequest ? 'Sending...' : 'Send Request'}
+                {isProcessingPayment ? 'Processing...' : 'Pay Now'}
               </Button>
             </Card.Content>
           </Card>
@@ -398,7 +401,7 @@ const styles = StyleSheet.create({
   },
   content: { 
     padding: 20,
-    paddingBottom: 120, // Increased space for additional button
+    paddingBottom: 120,
   },
   header: {
     flexDirection: 'row',
@@ -583,8 +586,8 @@ const styles = StyleSheet.create({
   chatButton: {
     borderColor: '#007AFF',
   },
-  requestButton: {
-    backgroundColor: '#FF9500',
+  paymentButton: {
+    backgroundColor: '#4CAF50',
   },
   buttonContent: {
     height: 50,
@@ -608,13 +611,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
   },
-  messageInput: {
-    height: 100,
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  halfInput: {
+    width: '48%',
   },
   submitButton: {
     borderRadius: 10,
     marginTop: 10,
-    backgroundColor: '#FF9500',
+    backgroundColor: '#4CAF50',
   },
   submitButtonContent: {
     height: 50,

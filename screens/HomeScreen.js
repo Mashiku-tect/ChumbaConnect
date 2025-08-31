@@ -154,7 +154,7 @@ export default function HomeScreen({ navigation }) {
         <Card.Actions style={styles.cardActions}>
           <Button
             mode="contained"
-            onPress={() => navigation.navigate("RoomDetails", { room: item })}
+            onPress={() => navigation.navigate("RentalRequestRoomDetails", { room: item })}
             style={styles.button}
             icon="eye"
           >

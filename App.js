@@ -12,6 +12,9 @@ import AddRoomScreen from './screens/AddRoomScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import EditRoomScreen from './screens/EditRoomScreen';
+import RentalRequestsScreen from './screens/RentalRequestsScreen';
+import CreateLeaseScreen from './screens/CreateLeaseScreen';
+import RentalRequestRoomDetailsScreen from './screens/RentalRequestSentRoomDetails';
 
 // Tab Navigator
 import MainTabs from './MainTabs';
@@ -37,6 +40,9 @@ export default function App() {
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AddRoom" component={AddRoomScreen} />
           <Stack.Screen  name="EditRoom"  component={EditRoomScreen} options={{ title: 'Edit Property' }} />
+          <Stack.Screen name="RentalRequests" component={RentalRequestsScreen} options={{ title: 'Rental Requests' }} />
+          <Stack.Screen name="CreateLease" component={CreateLeaseScreen} options={{ title: 'Create Lease' }} />
+          <Stack.Screen name="RentalRequestRoomDetails" component={RentalRequestRoomDetailsScreen} options={{ title: 'Request Details' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>

@@ -15,6 +15,28 @@ export default function MyRoomsScreen({ navigation }) {
       views: 42,
       inquiries: 8,
       dateAdded: '2023-10-15',
+      requests: [
+        {
+          id: '1',
+          tenantName: 'Sarah Johnson',
+          tenantImage: 'https://i.pravatar.cc/150?img=1',
+          moveInDate: '2023-12-01',
+          duration: '6 months',
+          message: 'I would like to schedule a viewing for tomorrow.',
+          status: 'pending',
+          timestamp: '2023-11-10'
+        },
+        {
+          id: '2',
+          tenantName: 'Michael Smith',
+          tenantImage: 'https://i.pravatar.cc/150?img=8',
+          moveInDate: '2023-12-15',
+          duration: '12 months',
+          message: 'Is the apartment still available?',
+          status: 'pending',
+          timestamp: '2023-11-12'
+        }
+      ]
     },
     {
       id: '2',
@@ -26,6 +48,18 @@ export default function MyRoomsScreen({ navigation }) {
       views: 28,
       inquiries: 3,
       dateAdded: '2023-09-22',
+      requests: [
+        {
+          id: '3',
+          tenantName: 'Emily Wilson',
+          tenantImage: 'https://i.pravatar.cc/150?img=11',
+          moveInDate: '2024-01-01',
+          duration: '3 months',
+          message: 'Could you send me more pictures?',
+          status: 'pending',
+          timestamp: '2023-11-15'
+        }
+      ]
     },
     {
       id: '3',
@@ -37,6 +71,28 @@ export default function MyRoomsScreen({ navigation }) {
       views: 67,
       inquiries: 12,
       dateAdded: '2023-11-05',
+      requests: [
+        {
+          id: '4',
+          tenantName: 'David Brown',
+          tenantImage: 'https://i.pravatar.cc/150?img=15',
+          moveInDate: '2023-11-20',
+          duration: '9 months',
+          message: 'What are the nearby amenities?',
+          status: 'pending',
+          timestamp: '2023-11-08'
+        },
+        {
+          id: '5',
+          tenantName: 'Lisa Anderson',
+          tenantImage: 'https://i.pravatar.cc/150?img=22',
+          moveInDate: '2023-12-05',
+          duration: '24 months',
+          message: 'I am interested in long term rental.',
+          status: 'pending',
+          timestamp: '2023-11-14'
+        }
+      ]
     },
   ]);
 
@@ -78,6 +134,15 @@ export default function MyRoomsScreen({ navigation }) {
     return status === 'available' ? 'checkmark-circle' : 'close-circle';
   };
 
+  const handleInquiriesPress = (room) => {
+    if (room.inquiries > 0) {
+      navigation.navigate('RentalRequests', { 
+        room: room,
+        requests: room.requests 
+      });
+    }
+  };
+
   const renderRoom = ({ item }) => (
     <Card style={styles.card}>
       <View style={styles.imageContainer}>
@@ -111,10 +176,24 @@ export default function MyRoomsScreen({ navigation }) {
             <Ionicons name="eye" size={14} color="#7f8c8d" />
             <Text style={styles.statText}>{item.views} views</Text>
           </View>
-          <View style={styles.stat}>
-            <Ionicons name="chatbubble" size={14} color="#7f8c8d" />
-            <Text style={styles.statText}>{item.inquiries} inquiries</Text>
-          </View>
+          <TouchableOpacity 
+            style={styles.stat}
+            onPress={() => handleInquiriesPress(item)}
+            disabled={item.inquiries === 0}
+          >
+            <Ionicons 
+              name="chatbubble" 
+              size={14} 
+              color={item.inquiries > 0 ? "#007AFF" : "#7f8c8d"} 
+            />
+            <Text style={[
+              styles.statText, 
+              item.inquiries > 0 && styles.inquiriesTextActive,
+              item.inquiries === 0 && styles.inquiriesTextDisabled
+            ]}>
+              {item.inquiries} inquiries
+            </Text>
+          </TouchableOpacity>
         </View>
       </Card.Content>
       
@@ -128,15 +207,14 @@ export default function MyRoomsScreen({ navigation }) {
         >
           {item.status === 'available' ? 'Mark Occupied' : 'Mark Available'}
         </Button>
-       
-<Button
-  mode="contained"
-  onPress={() => navigation.navigate('EditRoom', { room: item })}
-  style={styles.actionButton}
-  icon="pencil"
->
-  Edit
-</Button>
+        <Button
+          mode="contained"
+          onPress={() => navigation.navigate('EditRoom', { room: item })}
+          style={styles.actionButton}
+          icon="pencil"
+        >
+          Edit
+        </Button>
       </Card.Actions>
     </Card>
   );
@@ -284,7 +362,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
     backgroundColor: '#262d47ff',
-    color: '#2c3e50',
   },
   sortButton: {
     borderRadius: 20,
@@ -377,6 +454,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7f8c8d',
     marginLeft: 4,
+  },
+  inquiriesTextActive: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  inquiriesTextDisabled: {
+    color: '#bdc3c7',
   },
   cardActions: {
     justifyContent: 'space-between',
