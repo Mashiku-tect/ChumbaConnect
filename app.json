@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "ChumbaConnect2",
-    "slug": "ChumbaConnect2",
+    "name": "Chumba Connect",
+    "slug": "ChumbaConnect",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/chumbaconnect.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/chumbaconnect.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,13 +17,34 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/chumbaconnect.jpg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mashikutech.chumbaconnect",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCyr4Y9ckM8QI-haxKezAZXI60xngf_6oI"
+        }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c39d2a68-ca54-421a-a368-cfc3e03d26f4"
+      }
+    },
+    "plugins": [
+      "expo-video"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c39d2a68-ca54-421a-a368-cfc3e03d26f4"
     }
   }
 }

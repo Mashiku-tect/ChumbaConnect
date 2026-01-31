@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "601715764440",
+    "project_id": "chumbaconnect-fdc69",
+    "storage_bucket": "chumbaconnect-fdc69.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601715764440:android:3ca117f0ea5f0cee3c3bad",
+        "android_client_info": {
+          "package_name": "com.mashikutech.chumbaconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZG9o6jhCZ9QCVXyRwA-MEokr5N4J8WIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
